@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  onkyo2mqtt:
+    build: .
+    container_name: onkyo2mqtt
+    network_mode: host  # Required for Onkyo discovery
+    environment:
+      - MQTT_HOST=localhost
+      - MQTT_PORT=1883
+      - MQTT_USER=  # Optional
+      - MQTT_PASS=  # Optional
+      - MQTT_TOPIC=onkyo
+      - ONKYO_HOST=auto  # Use 'auto' for discovery or specify IP
+      - ONKYO_PORT=60128
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

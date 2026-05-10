@@ -1,0 +1,35 @@
+FROM python:3.11-slim
+
+# Set working directory
+WORKDIR /app
+
+# Install system dependencies including build tools for netifaces
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    git \
+    gcc \
+    python3-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install paho-mqtt
+RUN pip install --no-cache-dir paho-mqtt
+
+# Clone and install the onkyo-eiscp library
+RUN git clone https://github.com/mitchcapper/onkyo-eiscp.git /tmp/onkyo-eiscp && \
+    cd /tmp/onkyo-eiscp && \
+    pip install --no-cache-dir . && \
+    cd / && \
+    rm -rf /tmp/onkyo-eiscp
+
+# Copy the onkyo2mqtt script
+COPY onkyo2mqtt.py /app/
+
+# Environment variables with defaults
+ENV MQTT_HOST=localhost
+ENV MQTT_PORT=1883
+ENV MQTT_TOPIC=onkyo
+ENV ONKYO_HOST=auto
+ENV ONKYO_PORT=60128
+
+# Run the script
+CMD ["python", "-u", "onkyo2mqtt.py"]
