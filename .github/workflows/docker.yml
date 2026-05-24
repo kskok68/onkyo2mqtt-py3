@@ -1,18 +1,16 @@
 name: Build and Push Docker Image
-
 on:
   push:
     branches:
       - main
+      - beta
   workflow_dispatch:
-
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -24,11 +22,18 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Set Docker tag
+        id: tag
+        run: |
+          if [ "${{ github.ref_name }}" = "main" ]; then
+            echo "tag=latest" >> $GITHUB_OUTPUT
+          else
+            echo "tag=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+          fi
+
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
           push: true
-          tags: |
-            ghcr.io/kskok68/onkyo2mqtt-py3:latest
-            ghcr.io/kskok68/onkyo2mqtt-py3:${{ github.sha }}
+          tags: ghcr.io/kskok68/onkyo2mqtt-py3:${{ steps.tag.outputs.tag }}
